@@ -52,6 +52,8 @@ def process_files(source_dir, destination_dir):
                 header_init = list(header)
             else:
                 sublist_index = is_sublist(header, header_init)
+                if sublist_index < 0:
+                    continue
             
             for row in reader:
                 output_list.append(row[sublist_index:])
@@ -65,8 +67,9 @@ def process_files(source_dir, destination_dir):
 if __name__=='__main__':
     process_files('report-main', 'comb_reports')
     
-    user_answer = pd.read_csv('D:\\projects\\simulative\\python\\chapter_10\\case1\\comb_reports\\combined_data.csv')
-    correct_answer = pd.read_csv('D:\\projects\\simulative\\python\\chapter_10\\case1\\comb_reports\\data.csv')
+    dir_path = os.path.dirname(os.path.realpath(__file__))
+    user_answer = pd.read_csv(os.path.join(dir_path, 'comb_reports\\combined_data.csv'))
+    correct_answer = pd.read_csv(os.path.join(dir_path, 'comb_reports\\data.csv'))
 
     try:
         assert (user_answer == correct_answer).all().all(), 'Ответы не совпадают'

@@ -1,7 +1,8 @@
 import os
 import re
 import glob
-
+import csv
+import pandas as pd
 
 def process_files(source_dir, destination_dir):
 
@@ -31,6 +32,8 @@ def process_files(source_dir, destination_dir):
     
     # Флаг, показывающий, что заголовок уже записан
     header_written = False
+    # собственно сам заголовок (может быть другой)
+    header_init = ''
 
     with open(combined_file_path, 'w', encoding='utf-8') as outfile:
         for file in csv_files:
@@ -43,12 +46,30 @@ def process_files(source_dir, destination_dir):
                 if not header_written:
                     outfile.write(lines[0])
                     header_written = True
+                    header_init = lines[0]
+                    outfile.writelines(lines[1:])
+                    continue
+
+                print(header_init == lines[0])
+                if lines[0] != header_init:
+                    continue
+
                 # Записываем данные файла, пропуская первую строку 
-                # если в каждом файле есть заголовок
                 outfile.writelines(lines[1:])
     
     print(f"Объединенный файл: {combined_file_path}")
 
 
 if __name__=='__main__':
-    process_files('report-main', 'comb_reports')
+    # process_files('report-main', 'comb_reports')
+    
+    user_answer = pd.read_csv('D:\\projects\\simulative\\python\\chapter_10\\case1\\comb_reports\\combined_data.csv')
+    correct_answer = pd.read_csv('D:\\projects\\simulative\\python\\chapter_10\\case1\\comb_reports\\data.csv')
+
+    try:
+        assert (user_answer == correct_answer).all().all(), 'Ответы не совпадают'
+        assert user_answer.columns.equals(correct_answer.columns), 'Названия столбцов не совпадают'
+    except Exception as err:
+        raise AssertionError(f'При проверке возникла ошибка {repr(err)}')
+    else:
+        print('Поздравляем, Вы справились и успешно прошли все проверки!')

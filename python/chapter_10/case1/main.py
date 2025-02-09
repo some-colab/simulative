@@ -1,21 +1,21 @@
 import os
 import re
 import glob
-import csv
 
 
 def process_files(source_dir, destination_dir):
-    
-    # если папки назначения - нет
+
+    dir_path = os.path.dirname(os.path.realpath(__file__))
+    source_dir = os.path.join(dir_path, source_dir)
+    destination_dir = os.path.join(dir_path, destination_dir)
     if not os.path.exists(destination_dir):
         os.makedirs(destination_dir)
-    
+
     # фильтр
     pattern = re.compile(r'^\d{4}-\d{2}-\d{2}-\d{2}-\d{2}-\d+\.csv$')
     
     # список всех файлов в исходной папке
     all_files = glob.glob(os.path.join(source_dir, '*'))
-    
     # Фильтруем по шаблону
     csv_files = [file for file in all_files if pattern.match(os.path.basename(file))]
     
@@ -51,5 +51,4 @@ def process_files(source_dir, destination_dir):
 
 
 if __name__=='__main__':
-    path = os.path.join(os.getcwd(), 'python\\chapter_10\\case1')
-    process_files(path, path)
+    process_files('report-main', 'comb_reports')

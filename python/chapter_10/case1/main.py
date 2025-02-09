@@ -4,6 +4,14 @@ import glob
 import csv
 import pandas as pd
 
+def is_sublist(lst, sub):
+    sub_len = len(sub)
+    for i in range(len(lst) - sub_len + 1):
+        if lst[i:i+sub_len] == sub:
+            return i
+    return -1
+
+
 def process_files(source_dir, destination_dir):
 
     dir_path = os.path.dirname(os.path.realpath(__file__))
@@ -15,9 +23,7 @@ def process_files(source_dir, destination_dir):
     # фильтр
     pattern = re.compile(r'^\d{4}-\d{2}-\d{2}-\d{2}-\d{2}-\d+\.csv$')
     
-    # список всех файлов в исходной папке
     all_files = glob.glob(os.path.join(source_dir, '*'))
-    # Фильтруем по шаблону
     csv_files = [file for file in all_files if pattern.match(os.path.basename(file))]
     
     if not csv_files:
@@ -30,38 +36,34 @@ def process_files(source_dir, destination_dir):
     # Путь к результирующему файлу
     combined_file_path = os.path.join(destination_dir, 'combined_data.csv')
     
-    # Флаг, показывающий, что заголовок уже записан
     header_written = False
-    # собственно сам заголовок (может быть другой)
-    header_init = ''
+    header_init = []
+    output_list = []
 
-    with open(combined_file_path, 'w', encoding='utf-8') as outfile:
-        for file in csv_files:
-            with open(file, 'r', encoding='utf-8') as infile:
-                lines = infile.readlines()
-                if not lines:
-                    # пустой файл
-                    continue
-                # Если заголовок еще не записан
-                if not header_written:
-                    outfile.write(lines[0])
-                    header_written = True
-                    header_init = lines[0]
-                    outfile.writelines(lines[1:])
-                    continue
+    for file in csv_files:
+        with open(file, 'r', encoding='utf-8') as csvfile:
+            reader = csv.reader(csvfile, delimiter=';')
+            header = next(reader)
+            sublist_index = 0
 
-                print(header_init == lines[0])
-                if lines[0] != header_init:
-                    continue
-
-                # Записываем данные файла, пропуская первую строку 
-                outfile.writelines(lines[1:])
-    
-    print(f"Объединенный файл: {combined_file_path}")
+            if not header_written:
+                output_list.append(header)
+                header_written = True
+                header_init = list(header)
+            else:
+                sublist_index = is_sublist(header, header_init)
+            
+            for row in reader:
+                output_list.append(row[sublist_index:])
+                    
+    with open(combined_file_path, 'w', encoding='utf-8', newline='') as outfile:
+        writer = csv.writer(outfile, delimiter=',', quotechar='"')
+        for row in output_list:
+            writer.writerow(row)
 
 
 if __name__=='__main__':
-    # process_files('report-main', 'comb_reports')
+    process_files('report-main', 'comb_reports')
     
     user_answer = pd.read_csv('D:\\projects\\simulative\\python\\chapter_10\\case1\\comb_reports\\combined_data.csv')
     correct_answer = pd.read_csv('D:\\projects\\simulative\\python\\chapter_10\\case1\\comb_reports\\data.csv')
